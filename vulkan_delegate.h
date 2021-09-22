@@ -1,5 +1,5 @@
-#ifndef TENSORFLOW_LITE_DELEGATES_VULKAN_VULKAN_DELEGATE_KERNEL_H_
-#define TENSORFLOW_LITE_DELEGATES_VULKAN_VULKAN_DELEGATE_KERNEL_H_
+#ifndef TENSORFLOW_LITE_DELEGATES_VULKAN_VULKAN_DELEGATE_H
+#define TENSORFLOW_LITE_DELEGATES_VULKAN_VULKAN_DELEGATE_H_
 
 #include "tensorflow/lite/delegates/utils/simple_delegate.h"
 
@@ -8,62 +8,54 @@ extern "C" {
 #endif  // __cplusplus
 
 typedef struct {
-    // Allowed ops to delegate.
-    int allowed_builtin_code;
-    // Report error during init.
-    bool error_during_init;
-    // Report error during prepare.
-    bool error_during_prepare;
-    // Report error during invoke.
-    bool error_during_invoke;
+  // Allowed ops to delegate.
+  int allowed_builtin_code;
+  // Report error during init.
+  bool error_during_init;
+  // Report error during prepare.
+  bool error_during_prepare;
+  // Report error during invoke.
+  bool error_during_invoke;
 } VulkanDelegateOptions;
 
 #ifdef __cplusplus
 }
 #endif  // __cplusplus
 
-
-namespace tflite{
-namespace vulkan{
+namespace tflite {
+namespace vulkan {
 
 class VulkanDelegate : public SimpleDelegateInterface {
-public:	
-    explicit VulkanDelegate(const VulkanDelegateOptions& options)
-       : options_(options) { }
-    
-    virtual bool IsNodeSupportedByDelegate(const TfLiteRegistration* registration,
-        const TfLiteNode* node, TfLiteContext* context) const override
-    {
-        return false;
-    }
+ public:
+  explicit VulkanDelegate(const VulkanDelegateOptions& options)
+      : options_(options) {}
 
+  virtual bool IsNodeSupportedByDelegate(
+      const TfLiteRegistration* registration, const TfLiteNode* node,
+      TfLiteContext* context) const override {
+    return false;
+  }
 
-    virtual const char* Name() const override  
-    {
-        return "Vulkan Delegate";
-    }
+  virtual const char* Name() const override { return "Vulkan Delegate"; }
 
-    virtual SimpleDelegateInterface::Options DelegateOptions() const override
-    {
-        return SimpleDelegateInterface::Options();
-    }
+  virtual SimpleDelegateInterface::Options DelegateOptions() const override {
+    return SimpleDelegateInterface::Options();
+  }
 
-    virtual std::unique_ptr<SimpleDelegateKernelInterface> CreateDelegateKernelInterface() override;
-    virtual TfLiteStatus Initialize(TfLiteContext* context) override;
+  virtual std::unique_ptr<SimpleDelegateKernelInterface>
+  CreateDelegateKernelInterface() override;
+  virtual TfLiteStatus Initialize(TfLiteContext* context) override;
 
-private:
-    const VulkanDelegateOptions options_;
+ private:
+  const VulkanDelegateOptions options_;
 };
 
+}  // namespace vulkan
+}  // namespace tflite
 
-
-} // namespace vulkan
-} // namespace tflite
-
-
-template<typename T, typename... Args>
+template <typename T, typename... Args>
 std::unique_ptr<T> make_unique(Args&&... args) {
-    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+  return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 }
 
-#endif  // TENSORFLOW_LITE_DELEGATES_VULKAN_VULKAN_DELEGATE_KERNEL_H_
+#endif  // TENSORFLOW_LITE_DELEGATES_VULKAN_VULKAN_DELEGATE_H_

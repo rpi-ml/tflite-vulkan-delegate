@@ -1,48 +1,48 @@
-#include "tensorflow/lite/kernels/register.h"
 #include "tensorflow/lite/delegates/vulkan/vulkan_delegate.h"
 #include "tensorflow/lite/delegates/vulkan/vulkan_delegate_adaptor.h"
+#include "tensorflow/lite/kernels/register.h"
 
+#include <iostream>
 #include "tensorflow/lite/c/common.h"
 
-int main(int argc, char* argv[])
-{
-    printf("Loading Linear model: y = 2x-1\n");
-    std::unique_ptr<tflite::FlatBufferModel> model = tflite::FlatBufferModel::BuildFromFile("linear.tflite");
+int main(int argc, char* argv[]) {
+  std::cout << "Loading Linear model: y = 2x-1" << std::endl;
+  std::unique_ptr<tflite::FlatBufferModel> model =
+      tflite::FlatBufferModel::BuildFromFile("linear.tflite");
 
-    if(!model){
-        printf("Failed to mmap model\n");
-        exit(0);
-    }
+  if (!model) {
+    std::cout << "Failed to mmap model" << std::endl;
+    exit(0);
+  }
 
-    printf("Creating Interpreter\n");
-    tflite::ops::builtin::BuiltinOpResolver resolver;
-    std::unique_ptr<tflite::Interpreter> interpreter;
-    tflite::InterpreterBuilder(*model.get(), resolver)(&interpreter);
+  std::cout << "Creating Interpreter" << std::endl;
+  tflite::ops::builtin::BuiltinOpResolver resolver;
+  std::unique_ptr<tflite::Interpreter> interpreter;
+  tflite::InterpreterBuilder(*model.get(), resolver)(&interpreter);
 
-    printf("Creating Delegate\n");
-    VulkanDelegateOptions params = TfLiteVulkanOptionsDefault();
-    auto* delegate_ptr = TfLiteVulkanDelegateCreate(&params);
+  std::cout << "Creating Delegate" << std::endl;
+  VulkanDelegateOptions params = TfLiteVulkanOptionsDefault();
+  auto* delegate_ptr = TfLiteVulkanDelegateCreate(&params);
+  tflite::Interpreter::TfLiteDelegatePtr delegate(
+      delegate_ptr,
+      [](TfLiteDelegate* delegate) { TfLiteVulkanDelegateDelete(delegate); });
 
-    tflite::Interpreter::TfLiteDelegatePtr delegate(delegate_ptr,
-    [](TfLiteDelegate* delegate) {
-       TfLiteVulkanDelegateDelete(delegate);
-    });
+  std::cout << "Modifying Graph with delegate" << std::endl;
+  interpreter->ModifyGraphWithDelegate(delegate.get());
+  interpreter->AllocateTensors();
 
-    printf("Modifying Graph with delegate\n");
-    interpreter->ModifyGraphWithDelegate(delegate.get());
-    interpreter->AllocateTensors();
+  std::cout << "Set input: x = 10" << std::endl;
+  float* input = interpreter->typed_input_tensor<float>(0);
+  // Dummy input for testing
+  *input = 10.0;
 
-    printf("Set input: x = 10\n");
-    float* input = interpreter->typed_input_tensor<float>(0);
-    // Dummy input for testing
-    *input = 10.0;
+  std::cout << "Invoke Inference" << std::endl;
+  interpreter->Invoke();
 
-    printf("Invoke Inference\n");
-    interpreter->Invoke();
+  std::cout << "Get output" << std::endl;
+  float* output = interpreter->typed_output_tensor<float>(0);
+  std::cout << "Output: y = " << *output << std::endl;
 
-    float* output = interpreter->typed_output_tensor<float>(0);
-
-    printf("Output: y = %f\n", *output);
-
-    return 0;
+  return 0;
 }
+
