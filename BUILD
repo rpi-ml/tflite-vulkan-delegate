@@ -15,24 +15,6 @@ cc_library(
     ],
 )
 
-
-cc_library(
-    name = "vulkan_adaptor",
-    srcs = [
-        "vulkan_delegate_adaptor.cc",
-    ],
-    hdrs = [
-        "vulkan_delegate_adaptor.h",
-    ],
-    deps = [
-        ":vulkan_delegate",
-        "//tensorflow/lite/c:common",
-        "//tensorflow/lite/tools:command_line_flags",
-        "//tensorflow/lite/tools:logging",
-    ],
-)
-
-
 cc_binary(
     name = "vulkan_delegate.so",
     srcs = [
